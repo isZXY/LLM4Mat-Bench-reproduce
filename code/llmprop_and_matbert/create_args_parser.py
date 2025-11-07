@@ -52,6 +52,18 @@ def args_parser():
                         help='Learning rate scheduling technique. "linear", "onecycle", "step", or "lambda" (no scheduling))',
                         type=str,
                         default="onecycle")
+    parser.add_argument('--model_path', 
+                        help='model_path)',
+                        type=str,
+                        )
+    parser.add_argument('--batch_size', 
+                        help='batch_size',
+                        type=int,
+                        )
+    parser.add_argument('--prompt_type', 
+                        help='prompt_type)',
+                        type=str,
+                        )
     parser.add_argument('--property_name', 
                         help='The name of the property to predict. "band_gap", "volume", or "is_gap_direct"',
                         type=str,
@@ -60,6 +72,11 @@ def args_parser():
                         help='Optimizer type. "adamw" or "sgd"',
                         type=str,
                         default="adamw")
+    parser.add_argument('--min_samples', 
+                        help='min_samples ',
+                        type=int
+                        )
+    
     parser.add_argument('--task_name', 
                         help='the name of the task: "regression" if propert_name is band_gap or volume or "classification" if property_name is is_gap_direct',
                         type=str,

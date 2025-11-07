@@ -86,18 +86,18 @@ if __name__ == "__main__":
     log_print(f"🚀 Loading model from {model_path} ...")
     llm = LLM(
         model=model_path,
-        tensor_parallel_size=torch.cuda.device_count(),  # ✅ 自动多卡
-        dtype="bfloat16",  # ✅ 减少显存占用
+        tensor_parallel_size=torch.cuda.device_count(),  
+        dtype="bfloat16",  
         trust_remote_code=True,
         gpu_memory_utilization=0.9,
         enforce_eager=False,
     )
 
     sampling_params = SamplingParams(
-        temperature=0.8,   # 控制随机性（越高越随机）
-        top_k=10,          # 每步只从前10个概率最高的token中采样
-        top_p=1.0,         # 不启用核采样限制
-        max_tokens=256,    # 最多生成256个token
+        temperature=0.8,    
+        top_k=10,          
+        top_p=1.0,        
+        max_tokens=256,  
         stop=["</s>", "\n\n\n"],
     )
 
@@ -109,7 +109,7 @@ if __name__ == "__main__":
     total_prompts = len(prompts)
     num_batches = (total_prompts + batch_size - 1) // batch_size
 
-    # 如果文件已存在，则跳过已完成部分（断点续传）
+    # 如果文件已存在，则跳过已完成部分
     completed = 0
     if os.path.exists(save_path):
         with open(save_path, "r", encoding="utf-8") as f:
