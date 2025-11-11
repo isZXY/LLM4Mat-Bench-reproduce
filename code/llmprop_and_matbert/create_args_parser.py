@@ -76,7 +76,6 @@ def args_parser():
                         help='min_samples ',
                         type=int
                         )
-    
     parser.add_argument('--task_name', 
                         help='the name of the task: "regression" if propert_name is band_gap or volume or "classification" if property_name is is_gap_direct',
                         type=str,
