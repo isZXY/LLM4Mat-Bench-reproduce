@@ -34,7 +34,7 @@ def run_task(dataset, input_type, property_name, prompt_type, model_name, data_p
         with open("../evaluate_error_log.txt", "a", encoding="utf-8") as log_file:
             log_file.write(f"{dataset}|{input_type}|{property_name}|{prompt_type}|{model_name}|{error_message}|{error_details}\n")
         
-        print(f"Error occurred in subprocess: {e} -- Error details written to error_log.txt")
+        print(f"Error occurred in subprocess: {e} -- Error details written to evaluate_error_log.txt")
     
     except FileNotFoundError as e:
         # 捕获文件未找到错误
@@ -45,7 +45,7 @@ def run_task(dataset, input_type, property_name, prompt_type, model_name, data_p
         with open("../evaluate_error_log.txt", "a", encoding="utf-8") as log_file:
             log_file.write(f"{dataset}|{input_type}|{property_name}|{prompt_type}|{model_name}|{error_type}|{error_message}\n")
         
-        print(f"FileNotFoundError occurred: {e} -- Error details written to error_log.txt")
+        print(f"FileNotFoundError occurred: {e} -- Error details written to evaluate_error_log.txt")
     
     except OSError as e:
         # 捕获操作系统错误（如权限问题）
@@ -56,7 +56,7 @@ def run_task(dataset, input_type, property_name, prompt_type, model_name, data_p
         with open("../evaluate_error_log.txt", "a", encoding="utf-8") as log_file:
             log_file.write(f"{dataset}|{input_type}|{property_name}|{prompt_type}|{model_name}|{error_type}|{error_message}\n")
         
-        print(f"OSError occurred: {e} -- Error details written to error_log.txt")
+        print(f"OSError occurred: {e} -- Error details written to evaluate_error_log.txt")
     
     except Exception as e:
         # 捕获其他任何异常
@@ -67,7 +67,7 @@ def run_task(dataset, input_type, property_name, prompt_type, model_name, data_p
         with open("../evaluate_error_log.txt", "a", encoding="utf-8") as log_file:
             log_file.write(f"{dataset}|{input_type}|{property_name}|{prompt_type}|{model_name}|{error_type}|{error_message}\n")
         
-        print(f"Unexpected error occurred: {e} -- Error details written to error_log.txt")
+        print(f"Unexpected error occurred: {e} -- Error details written to evaluate_error_log.txt")
 
 # 主函数
 def main():

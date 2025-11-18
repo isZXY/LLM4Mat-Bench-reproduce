@@ -16,7 +16,7 @@ UNCOMPLETE_FILE = "/public/home/sjtu_zhuxuanyu/LLM4Mat-Bench/uncomplete_tasks.tx
 
 # 公共参数
 DATA_PATH = "../data"
-INFERENCE_SCRIPT = "../code/inference_vllm_all.py"  # ✅ 统一推理入口
+INFERENCE_SCRIPT = "../code/inference_vllm_all.py"
 RESULTS_PATH = "../results/"
 MAX_LEN = 4000
 BATCH_SIZE = 256
@@ -24,27 +24,32 @@ BATCH_SIZE = 256
 # === 参数定义 ===
 # 模型名称（例如不同的推理脚本或路径）
 model_paths = [
-    "/public/share/model/ChemDFM-13B-v1.0",
-    "/public/share/model/Intern-S1-mini",
-    "/public/share/model/Qwen3-8B",
-    "/public/share/model/Llama-2-7b-chat-hf",
-    "/public/share/model/Meta-Llama-3.1-8B-Instruct",
+    # "/public/share/model/ChemDFM-v2.0-14B",
+    # "/public/share/model/Intern-S1-mini",
+    # "/public/share/model/Qwen3-8B",
+    # "/public/share/model/Qwen2.5-14B-Instruct",
 
+
+    "/public/share/model/Qwen3-14B",
+    "/public/share/model/Qwen3-4B",
+
+    # "/public/share/model/Llama-2-7b-chat-hf",
+    # "/public/share/model/Meta-Llama-3.1-8B-Instruct",
 ]
 
 
 # 数据集名称
 dataset_names = [
     "cantor_hea",
-    "gnome",
-    "hmof",
-    "jarvis_dft",
-    "jarvis_qetb",
+    # "gnome",
+    # "hmof",
+    # "jarvis_dft",
+    # "jarvis_qetb",
     "mp",
     "omdb",
     "oqmd",
-    "qmof",
-    "snumat",
+    # "qmof",
+    # "snumat",
 ]
 
 # 输入类型

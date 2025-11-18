@@ -28,6 +28,8 @@ def save_final_evaluate_csv(
     record_min=None,
     record_mae=None,
     record_rmse=None,
+    record_mad=None,
+    record_mad_mae_ratio=None,
     output_path="../results/final_evaluate.csv"
 ):
     """
@@ -77,13 +79,16 @@ def save_final_evaluate_csv(
         safe_value(record_min),
         safe_value(record_mae),
         safe_value(record_rmse),
-        safe_value(record_roc_score)
+        safe_value(record_roc_score),
+        safe_value(record_mad),
+        safe_value(record_mad_mae_ratio),
+
     ]
     # 判断文件是否存在
     file_exists = os.path.exists(output_path)
 
     # 写入或追加
-    with open(output_path, "a", encoding="utf-8", newline="") as f:
+    with open(output_path, "a", encoding="utf-8-sig", newline="") as f:
         writer = csv.writer(f)
         if not file_exists:
             writer.writerow([
@@ -101,7 +106,9 @@ def save_final_evaluate_csv(
                 "min",
                 "MAE↓",
                 "RMSE↓",
-                "ROC-AUC↑"
+                "ROC-AUC↑",
+                "MAD↓",
+                "MAD:MAE↑"
             ])
         writer.writerow(row)
 
@@ -307,6 +314,8 @@ def extract_predictions(dataset_name, model_name, data_path, results_path, input
     record_min=None
     record_mae=None
     record_rmse=None
+    record_mad=None
+    record_mad_mae_ratio=None
 
     results_df = pd.DataFrame({f'{property_name}_target': list(data_dp[property_name]), f'{property_name}_predicted': predictions})
     print(f'original results for {property_name}:', len(results_df))
@@ -355,14 +364,29 @@ def extract_predictions(dataset_name, model_name, data_path, results_path, input
             print('min: ', results_df[f'{property_name}_extracted_predictions'].min())
             record_min = results_df[f'{property_name}_extracted_predictions'].max()
             if len(results_df) >= min_samples:
-                mae = metrics.mean_absolute_error(list(results_df[f'{property_name}_target']), list(results_df[f'{property_name}_extracted_predictions']))
-                rmse = metrics.mean_squared_error(list(results_df[f'{property_name}_target']), list(results_df[f'{property_name}_extracted_predictions']), squared=False)
+                y_true = list(results_df[f'{property_name}_target'])
+                y_pred = list(results_df[f'{property_name}_extracted_predictions'])
+
+
+                mae = metrics.mean_absolute_error(y_true, y_pred)
+                rmse = np.sqrt(metrics.mean_squared_error(y_true, y_pred))
+
+                y_true_mean = np.mean(y_true)
+                mad = np.mean(np.abs(y_true - y_true_mean))
+                mad_mae_ratio = mad / mae if mae != 0 else np.nan
+
+
                 print('MAE: ', mae)
-                record_mae = mae
                 print('RMSE: ', rmse)
+                print('MAD (from ground truth): ', mad)
+                print('MAD:MAE Ratio: ', mad_mae_ratio)
+
+                record_mae = mae
                 record_rmse = rmse
+                record_mad = mad
+                record_mad_mae_ratio = mad_mae_ratio
             else:
-                print('Invalid')
+                print("Invalid")
 
     elif dataset_name == 'snumat':
         results_df = results_df.drop(results_df[results_df[f'{property_name}_target'] == 'Null'].index).reset_index(drop=True)
@@ -415,12 +439,27 @@ def extract_predictions(dataset_name, model_name, data_path, results_path, input
 
 
             if len(results_df) >= min_samples:
-                mae = metrics.mean_absolute_error(list(results_df[f'{property_name}_target']), list(results_df[f'{property_name}_extracted_predictions']))
-                rmse = metrics.mean_squared_error(list(results_df[f'{property_name}_target']), list(results_df[f'{property_name}_extracted_predictions']), squared=False)
+                y_true = list(results_df[f'{property_name}_target'])
+                y_pred = list(results_df[f'{property_name}_extracted_predictions'])
+
+
+                mae = metrics.mean_absolute_error(y_true, y_pred)
+                rmse = np.sqrt(metrics.mean_squared_error(y_true, y_pred))
+
+                y_true_mean = np.mean(y_true)
+                mad = np.mean(np.abs(y_true - y_true_mean))
+                mad_mae_ratio = mad / mae if mae != 0 else np.nan
+
+
                 print('MAE: ', mae)
-                record_mae = mae
                 print('RMSE: ', rmse)
+                print('MAD (from ground truth): ', mad)
+                print('MAD:MAE Ratio: ', mad_mae_ratio)
+
+                record_mae = mae
                 record_rmse = rmse
+                record_mad = mad
+                record_mad_mae_ratio = mad_mae_ratio
             else:
                 print("Invalid")
     
@@ -428,6 +467,7 @@ def extract_predictions(dataset_name, model_name, data_path, results_path, input
         results_df[f'{property_name}_extracted_predictions'] = results_df[f'{property_name}_predicted'].apply(extract_values)
         results_df = results_df.dropna(subset=[f'{property_name}_extracted_predictions']).reset_index(drop=True)
         print(f'after extracting predictions:', len(results_df)) 
+
         record_predicted_cnt = len(results_df)
         print('max: ', results_df[f'{property_name}_extracted_predictions'].max())
         print('min: ', results_df[f'{property_name}_extracted_predictions'].min())
@@ -435,17 +475,32 @@ def extract_predictions(dataset_name, model_name, data_path, results_path, input
         record_min =  results_df[f'{property_name}_extracted_predictions'].min()
 
         if len(results_df) >= min_samples:
-            mae = metrics.mean_absolute_error(list(results_df[f'{property_name}_target']), list(results_df[f'{property_name}_extracted_predictions']))
-            rmse = np.sqrt(metrics.mean_squared_error(list(results_df[f'{property_name}_target']), list(results_df[f'{property_name}_extracted_predictions'])))
+            y_true = list(results_df[f'{property_name}_target'])
+            y_pred = list(results_df[f'{property_name}_extracted_predictions'])
+
+
+            mae = metrics.mean_absolute_error(y_true, y_pred)
+            rmse = np.sqrt(metrics.mean_squared_error(y_true, y_pred))
+
+            y_true_mean = np.mean(y_true)
+            mad = np.mean(np.abs(y_true - y_true_mean))
+            mad_mae_ratio = mad / mae if mae != 0 else np.nan
+
+
             print('MAE: ', mae)
             print('RMSE: ', rmse)
+            print('MAD (from ground truth): ', mad)
+            print('MAD:MAE Ratio: ', mad_mae_ratio)
+
             record_mae = mae
             record_rmse = rmse
+            record_mad = mad
+            record_mad_mae_ratio = mad_mae_ratio
         else:
             print("Invalid")
     
 
-    save_final_evaluate_csv(dataset_name, model_name, input_type, prompt_type, property_name, record_raw_cnt, record_ex_nan_cnt, record_ex_predict_nan_cnt, record_predicted_cnt, record_roc_score, record_max, record_min,record_mae,record_rmse)
+    save_final_evaluate_csv(dataset_name, model_name, input_type, prompt_type, property_name, record_raw_cnt, record_ex_nan_cnt, record_ex_predict_nan_cnt, record_predicted_cnt, record_roc_score, record_max, record_min,record_mae,record_rmse,record_mad,record_mad_mae_ratio)
     results_df.to_csv(f"{results_path}/{folder_path}/{model_name}_test_stats_for_{property_name}_{input_type}_{prompt_type}_4000.csv", index=False)
     print('-'*50)
         
