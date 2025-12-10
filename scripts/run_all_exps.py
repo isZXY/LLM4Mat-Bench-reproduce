@@ -24,30 +24,31 @@ BATCH_SIZE = 256
 # === 参数定义 ===
 # 模型名称（例如不同的推理脚本或路径）
 model_paths = [
-    # "/public/share/model/ChemDFM-v2.0-14B",
-    # "/public/share/model/Intern-S1-mini",
-    # "/public/share/model/Qwen3-8B",
-    # "/public/share/model/Qwen2.5-14B-Instruct",
+    "/public/share/model/ChemDFM-v2.0-14B",
+
+
+    "/public/share/model/Intern-S1-mini",
+    "/public/share/model/Qwen3-8B",
 
 
     "/public/share/model/Qwen3-14B",
     "/public/share/model/Qwen3-4B",
 
-    # "/public/share/model/Llama-2-7b-chat-hf",
-    # "/public/share/model/Meta-Llama-3.1-8B-Instruct",
+    "/public/share/model/Llama-2-7b-chat-hf",
+    "/public/share/model/Meta-Llama-3.1-8B-Instruct",
 ]
 
 
 # 数据集名称
 dataset_names = [
-    "cantor_hea",
+    # "cantor_hea",
     # "gnome",
     # "hmof",
     # "jarvis_dft",
     # "jarvis_qetb",
     "mp",
-    "omdb",
-    "oqmd",
+    # "omdb",
+    # "oqmd",
     # "qmof",
     # "snumat",
 ]
@@ -55,8 +56,8 @@ dataset_names = [
 # 输入类型
 input_types = [
     "formula",
-    "cif_structure", 
-    "description",
+    # "cif_structure", 
+    # "description",
 ]
 
 # 不同数据集对应的属性名称
