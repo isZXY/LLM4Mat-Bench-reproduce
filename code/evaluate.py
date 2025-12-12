@@ -301,7 +301,7 @@ def extract_predictions(dataset_name, model_name, data_path, results_path, input
 
     folder_path = f"{model_name}_{dataset_name}_{input_type}_{property_name}_{prompt_type}"
 
-    json_file_name = f"{model_name}_test_stats_for_{property_name}_{input_type}_{prompt_type}_4000.json"
+    json_file_name = f"{model_name}_test_stats_for_{property_name}_{input_type}_{prompt_type}_4000.jsonl"
 
     predictions = readJSONL(f"{results_path}/{folder_path}/{json_file_name}")
 

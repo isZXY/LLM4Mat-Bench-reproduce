@@ -135,7 +135,7 @@ if __name__ == "__main__":
     batch_size = config.get("batch_size")
 
     os.makedirs(results_path, exist_ok=True)
-    save_path = f"{results_path}/{model_name}_test_stats_for_{property_name}_{input_type}_{prompt_type}_{max_len}.json"
+    save_path = f"{results_path}/{model_name}_test_stats_for_{property_name}_{input_type}_{prompt_type}_{max_len}.jsonl"
 
 
 
@@ -149,15 +149,22 @@ if __name__ == "__main__":
 
     # ==== 将llama格式prompts转换为huggingface标准格式 ====
     prompts: List[List[Dict]] = []
+    SUFFIX = " /no_think"
     for llama_prompt in prompts_raw:
         # 确保 llama_prompt 是字符串类型
         if pd.isna(llama_prompt):
             continue
-            
+
         # 调用解析函数
         parsed_messages = parse_llama_prompt_to_messages(str(llama_prompt))
         
         if parsed_messages:
+            for message in reversed(parsed_messages):
+                if message.get("role") == "user":
+                    # 在 user 消息内容的末尾加上 SUFFIX
+                    message["content"] += SUFFIX
+                    break # 找到并修改后就退出循环
+
             prompts.append(parsed_messages)
         else:
             log_print(f"⚠️ Warning: Could not parse prompt:\n{llama_prompt[:100]}...")
@@ -178,7 +185,7 @@ if __name__ == "__main__":
         enforce_eager=False,
     )
 
-    # ==== 新增：获取 Tokenizer 对象===
+    # ====获取 Tokenizer 对象===
     try:
         tokenizer = llm.get_tokenizer()
         log_print("🔧 Successfully retrieved tokenizer for manual template application.")
@@ -190,10 +197,10 @@ if __name__ == "__main__":
     ## 设置模型特定采样参数
     # model_basename = os.path.basename(model_path)
     sampling_params = SamplingParams(
-        temperature=0.7,
+        temperature=0.5,
         top_k=10, 
         top_p=1,
-        max_tokens=256,
+        max_tokens=512,
     )
 
 
@@ -217,42 +224,64 @@ if __name__ == "__main__":
         batch_prompts = prompts[start:end]
 
 
-        # 2. *** 核心修改：手动渲染 messages 为字符串列表 ***
+        # 2. *** 手动渲染 messages 为字符串列表 ***
         batch_prompts_strings = []
-        for messages in batch_prompts:
-            # 使用 tokenizer 的 apply_chat_template 进行渲染
+        valid_indices = []  # 记录没有超长的 prompts 在 batch 内的位置
+
+        for local_idx, messages in enumerate(batch_prompts):
+            # 渲染
             rendered_prompt = tokenizer.apply_chat_template(
-                messages, 
-                tokenize=False, 
-                add_generation_prompt=True # 必须添加，以指示模型开始生成
+                messages,
+                tokenize=False,
+                add_generation_prompt=True,
+                chat_template_kwargs={"enable_thinking": False}
             )
+            
+            # 计算 token 数
+            token_ids = tokenizer.encode(rendered_prompt)
+            prompt_token_len = len(token_ids)
+            
+            # 获取模型最大长度
+            max_model_len = llm.llm_engine.model_config.max_model_len
+
+            if prompt_token_len > max_model_len:
+                # 写一个空的占位结果，使得数量保持一致
+                log_print(
+                    f"⚠️ Skip sample: prompt token length {prompt_token_len} > max model length {max_model_len}"
+                )
+                write_jsonl_line(save_path, {"response": "Warning:token too long,skipped!"})
+                continue
+
+            # 合格的才加入 batch
             batch_prompts_strings.append(rendered_prompt)
+            valid_indices.append(local_idx)
 
 
         try:
-            
-            
-            # # 🔍 打印应用模板后的字符串 (这是 vLLM 要求的输入格式)
+            # # 打印应用模板后的字符串
             # log_print("🔍 ==== Prompt Preview (应用模板后的字符串) ====")
             # if batch_prompts_strings:
             #     log_print(f"[Prompt {start}] ----------------------------------")
             #     log_print(batch_prompts_strings[0])
             # # pdb.set_trace()
 
-            outputs = llm.generate(batch_prompts_strings, sampling_params)
+            outputs = llm.generate(
+                batch_prompts_strings,
+                sampling_params=sampling_params,
+            )
         except Exception as e:
             log_print(f"❌ Error during batch {batch_idx}: {e}")
             continue
 
-        for i, output in enumerate(outputs):
-            response_text = output.outputs[0].text if len(output.outputs) > 0 else ""
+        out_i = 0
+        for local_idx in range(len(batch_prompts)):
+            if local_idx not in valid_indices:
+                continue  # 已经写过空占位
+
+            response_text = outputs[out_i].outputs[0].text if outputs[out_i].outputs else ""
             clean_result = extract_ans_from_chat_llm(response_text)
-
-            record = {
-                "response": clean_result
-            }
-
-            write_jsonl_line(save_path, record)
+            write_jsonl_line(save_path, {"response": clean_result})
+            out_i += 1
 
         # 显示进度
         done = end / total_prompts * 100

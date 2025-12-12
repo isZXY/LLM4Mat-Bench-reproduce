@@ -56,8 +56,8 @@ dataset_names = [
 # 输入类型
 input_types = [
     "formula",
-    # "cif_structure", 
-    # "description",
+    "cif_structure", 
+    "description",
 ]
 
 # 不同数据集对应的属性名称
